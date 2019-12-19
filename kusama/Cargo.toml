@@ -1,5 +1,5 @@
 [package]
-name = "polkadot-runtime"
+name = "kusama-runtime"
 version = "0.7.9"
 authors = ["Parity Technologies <admin@parity.io>"]
 edition = "2018"
@@ -104,7 +104,6 @@ std = [
 	"executive/std",
 	"finality-tracker/std",
 	"grandpa/std",
-	"identity/std",
 	"im-online/std",
 	"indices/std",
 	"membership/std",
@@ -127,5 +126,4 @@ std = [
 	"babe-primitives/std",
 	"sp-session/std",
 	"randomness-collective-flip/std",
-	"sudo/std",
 ]
