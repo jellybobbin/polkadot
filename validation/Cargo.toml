@@ -28,6 +28,7 @@ txpool-api = { package = "sp-transaction-pool", git = "https://github.com/parity
 client = { package = "sc-client-api", git = "https://github.com/paritytech/substrate", branch = "bkchr-cumulus-branch" }
 sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "bkchr-cumulus-branch" }
 sp-api = { git = "https://github.com/paritytech/substrate", branch = "bkchr-cumulus-branch" }
+sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "bkchr-cumulus-branch" }
 sp-timestamp = { git = "https://github.com/paritytech/substrate", branch = "bkchr-cumulus-branch" }
 block-builder = { package = "sc-block-builder", git = "https://github.com/paritytech/substrate", branch = "bkchr-cumulus-branch" }
 trie = { package = "sp-trie", git = "https://github.com/paritytech/substrate", branch = "bkchr-cumulus-branch" }

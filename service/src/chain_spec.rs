@@ -200,9 +200,6 @@ fn staging_testnet_config_genesis() -> polkadot::GenesisConfig {
 			claims: vec![],
 			vesting: vec![],
 		}),
-		sudo: Some(SudoConfig {
-			key: endowed_accounts[0].clone(),
-		}),
 	}
 }
 
@@ -260,7 +257,7 @@ pub fn get_authority_keys_from_seed(seed: &str) -> (
 /// Helper function to create GenesisConfig for testing
 pub fn testnet_genesis(
 	initial_authorities: Vec<(AccountId, AccountId, BabeId, GrandpaId, ImOnlineId, ValidatorId, AuthorityDiscoveryId)>,
-	root_key: AccountId,
+	_root_key: AccountId,
 	endowed_accounts: Option<Vec<AccountId>>,
 ) -> polkadot::GenesisConfig {
 	let endowed_accounts: Vec<AccountId> = endowed_accounts.unwrap_or_else(|| {
@@ -339,9 +336,6 @@ pub fn testnet_genesis(
 		claims: Some(polkadot::ClaimsConfig {
 			claims: vec![],
 			vesting: vec![],
-		}),
-		sudo: Some(SudoConfig {
-			key: root_key,
 		}),
 	}
 }
