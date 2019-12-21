@@ -21,7 +21,7 @@
 use cli::VersionInfo;
 use futures::{channel::oneshot, future, FutureExt};
 
-use std::{cell::RefCell, marker::PhantomData};
+use std::cell::RefCell;
 
 // the regular polkadot worker simply does nothing until ctrl-c
 struct Exit;

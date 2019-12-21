@@ -33,7 +33,7 @@ use structopt::StructOpt;
 
 pub use service::{
 	AbstractService, CustomConfiguration, ProvideRuntimeApi, CoreApi, ParachainHost, IsKusama,
-	WrappedExecutor
+	WrappedExecutor, Block, self,
 };
 
 pub use cli::{VersionInfo, IntoExit, NoCustom, SharedParams};
@@ -108,13 +108,25 @@ fn execute_cmd_with_runtime<R, D, E, X>(
 ) -> error::Result<()>
 where
 	R: service::ConstructRuntimeApi<service::Block, service::TFullClient<service::Block, R, D>>
-		+ service::ConstructRuntimeApi<service::Block, service::TLightClient<service::Block, R, D>>
 		+ Send + Sync + 'static,
-	<R as service::ConstructRuntimeApi<service::Block, service::TFullClient<service::Block, R, D>>>::RuntimeApi: service::RuntimeApiCollection<E>,
-	<R as service::ConstructRuntimeApi<service::Block, service::TLightClient<service::Block, R, D>>>::RuntimeApi: service::RuntimeApiCollection<E>,
+	<R as service::ConstructRuntimeApi<service::Block, service::TFullClient<service::Block, R, D>>>::RuntimeApi: service::RuntimeApiCollection<E, StateBackend = sc_client_api::StateBackendFor<service::TFullBackend<Block>, Block>>,
+	<R as service::ConstructRuntimeApi<service::Block, service::TLightClient<service::Block, R, D>>>::RuntimeApi: service::RuntimeApiCollection<E, StateBackend = sc_client_api::StateBackendFor<service::TLightBackend<Block>, Block>>,
 	E: service::Codec + Send + Sync + 'static,
 	D: service::NativeExecutionDispatch + 'static,
 	X: IntoExit,
+	// Rust bug: https://github.com/rust-lang/rust/issues/24159
+	<<R as service::ConstructRuntimeApi<service::Block, service::TFullClient<service::Block, R, D>>>::RuntimeApi as sp_api::ApiExt<service::Block>>::StateBackend: sp_api::StateBackend<sp_core::Blake2Hasher>,
+// Rust bug: https://github.com/rust-lang/rust/issues/43580
+	R: sp_api::ConstructRuntimeApi<
+	sp_runtime::generic::Block<sp_runtime::generic::Header<u32, sp_runtime::traits::BlakeTwo256>, sp_runtime::OpaqueExtrinsic>,
+	sc_client::Client<
+	sc_client::light::backend::Backend<sc_client_db::light::LightStorage<sp_runtime::generic::Block<sp_runtime::generic::Header<u32, sp_runtime::traits::BlakeTwo256>, sp_runtime::OpaqueExtrinsic>>,
+	sp_core::Blake2Hasher>,
+	sc_client::light::call_executor::GenesisCallExecutor<sc_client::light::backend::Backend<sc_client_db::light::LightStorage<
+	sp_runtime::generic::Block<sp_runtime::generic::Header<u32, sp_runtime::traits::BlakeTwo256>, sp_runtime::OpaqueExtrinsic>>, sp_core::Blake2Hasher>,
+	sc_client::LocalCallExecutor<sc_client::light::backend::Backend<sc_client_db::light::LightStorage<
+	sp_runtime::generic::Block<sp_runtime::generic::Header<u32, sp_runtime::traits::BlakeTwo256>, sp_runtime::OpaqueExtrinsic>>,
+	sp_core::Blake2Hasher>, sc_executor::NativeExecutor<D>>>, sp_runtime::generic::Block<sp_runtime::generic::Header<u32, sp_runtime::traits::BlakeTwo256>, sp_runtime::OpaqueExtrinsic>, R>>,
 {
 	match cmd {
 		cli::ParseAndPrepare::Run(cmd) => cmd.run(&load_spec, exit,

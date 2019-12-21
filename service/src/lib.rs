@@ -20,7 +20,7 @@ pub mod chain_spec;
 
 use futures01::sync::mpsc;
 use futures::{FutureExt, TryFutureExt, task::{Spawn, SpawnError, FutureObj}};
-use client::LongestChain;
+use sc_client::LongestChain;
 use std::sync::Arc;
 use std::time::Duration;
 use polkadot_primitives::{parachain, Hash, BlockId, AccountId, Nonce, Balance};
@@ -36,7 +36,7 @@ pub use service::{
 };
 pub use service::config::{DatabaseConfig, full_version_from_strs};
 pub use sc_executor::NativeExecutionDispatch;
-pub use client::{ExecutionStrategy, CallExecutor, Client};
+pub use sc_client::{ExecutionStrategy, CallExecutor, Client};
 pub use client_api::backend::Backend;
 pub use sp_api::{Core as CoreApi, ConstructRuntimeApi, ProvideRuntimeApi, StateBackend};
 pub use sp_runtime::traits::HasherFor;
@@ -44,7 +44,7 @@ pub use consensus_common::SelectChain;
 pub use polkadot_network::PolkadotProtocol;
 pub use polkadot_primitives::parachain::{CollatorId, ParachainHost};
 pub use polkadot_primitives::Block;
-pub use primitives::Blake2Hasher;
+pub use sp_core::Blake2Hasher;
 pub use sp_runtime::traits::{Block as BlockT, self as runtime_traits};
 pub use sc_network::specialization::NetworkSpecialization;
 pub use chain_spec::ChainSpec;
@@ -125,6 +125,7 @@ pub trait RuntimeApiCollection<Extrinsic: codec::Codec + Send + Sync + 'static> 
 	+ authority_discovery_primitives::AuthorityDiscoveryApi<Block>
 where
 	Extrinsic: RuntimeExtrinsic,
+	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<Blake2Hasher>,
 {}
 
 impl<Api, Extrinsic> RuntimeApiCollection<Extrinsic> for Api
@@ -142,6 +143,7 @@ where
 	+ sp_session::SessionKeys<Block>
 	+ authority_discovery_primitives::AuthorityDiscoveryApi<Block>,
 	Extrinsic: RuntimeExtrinsic,
+	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<Blake2Hasher>,
 {}
 
 pub trait RuntimeExtrinsic: codec::Codec + Send + Sync + 'static
@@ -174,7 +176,7 @@ macro_rules! new_full_start {
 			Block, $runtime, $executor
 		>($config)?
 			.with_select_chain(|_, backend| {
-				Ok(client::LongestChain::new(backend.clone()))
+				Ok(sc_client::LongestChain::new(backend.clone()))
 			})?
 			.with_transaction_pool(|config, client, _fetcher| {
 				let pool_api = sc_transaction_pool::FullChainApi::new(client.clone());
@@ -226,9 +228,10 @@ pub fn new_chain_ops<Runtime, Dispatch, Extrinsic>(config: Configuration)
 	-> Result<impl ServiceBuilderCommand<Block=Block>, ServiceError>
 where
 	Runtime: ConstructRuntimeApi<Block, service::TFullClient<Block, Runtime, Dispatch>> + Send + Sync + 'static,
-	Runtime::RuntimeApi: RuntimeApiCollection<Extrinsic>,
+	Runtime::RuntimeApi: RuntimeApiCollection<Extrinsic, StateBackend = client_api::StateBackendFor<TFullBackend<Block>, Block>>,
 	Dispatch: NativeExecutionDispatch + 'static,
 	Extrinsic: RuntimeExtrinsic,
+	<Runtime::RuntimeApi as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<Blake2Hasher>,
 {
 	Ok(new_full_start!(config, Runtime, Dispatch).0)
 }
@@ -273,9 +276,11 @@ pub fn new_full<Runtime, Dispatch, Extrinsic>(config: Configuration)
 	>, ServiceError>
 	where
 		Runtime: ConstructRuntimeApi<Block, service::TFullClient<Block, Runtime, Dispatch>> + Send + Sync + 'static,
-		Runtime::RuntimeApi: RuntimeApiCollection<Extrinsic>,
+		Runtime::RuntimeApi: RuntimeApiCollection<Extrinsic, StateBackend = client_api::StateBackendFor<TFullBackend<Block>, Block>>,
 		Dispatch: NativeExecutionDispatch + 'static,
 		Extrinsic: RuntimeExtrinsic,
+		// Rust bug: https://github.com/rust-lang/rust/issues/24159
+		<Runtime::RuntimeApi as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<Blake2Hasher>,
 {
 	use sc_network::DhtEvent;
 	use futures::{compat::Stream01CompatExt, stream::StreamExt};
@@ -544,10 +549,17 @@ pub fn new_light<Runtime, Dispatch, Extrinsic>(config: Configuration)
 		CallExecutor = TLightCallExecutor<Block, Dispatch>,
 	>, ServiceError>
 where
-	Runtime: ConstructRuntimeApi<Block, service::TLightClient<Block, Runtime, Dispatch>> + Send + Sync + 'static,
-	Runtime::RuntimeApi: RuntimeApiCollection<Extrinsic>,
+	Runtime: Send + Sync + 'static,
+	Runtime::RuntimeApi: RuntimeApiCollection<Extrinsic, StateBackend = client_api::StateBackendFor<TLightBackend<Block>, Block>>,
 	Dispatch: NativeExecutionDispatch + 'static,
 	Extrinsic: RuntimeExtrinsic,
+	// Rust bug: https://github.com/rust-lang/rust/issues/43580
+	Runtime: sp_api::ConstructRuntimeApi<
+		Block,
+	Client<
+	sc_client::light::backend::Backend<sc_client_db::light::LightStorage<Block>, sp_core::Blake2Hasher>,
+	sc_client::light::call_executor::GenesisCallExecutor<sc_client::light::backend::Backend<sc_client_db::light::LightStorage<Block>, sp_core::Blake2Hasher>,
+	sc_client::LocalCallExecutor<sc_client::light::backend::Backend<sc_client_db::light::LightStorage<Block>, sp_core::Blake2Hasher>, sc_executor::NativeExecutor<Dispatch>>>, Block, Runtime>>,
 {
 	let inherent_data_providers = InherentDataProviders::new();
 
