@@ -24,7 +24,7 @@ use adder::{HeadData as AdderHead, BlockData as AdderBody};
 use sp_core::Pair;
 use codec::{Encode, Decode};
 use primitives::{
-	Hash, Block,
+	Hash,
 	parachain::{
 		HeadData, BlockData, Id as ParaId, Message, OutgoingMessages, Status as ParachainStatus,
 	},
@@ -33,7 +33,7 @@ use collator::{
 	InvalidHead, ParachainContext, Network, BuildParachainContext, load_spec, Configuration,
 };
 use parking_lot::Mutex;
-use futures::{future::{Ready, ok, err}, task::Spawn};
+use futures::future::{Ready, ok, err};
 
 const GENESIS: AdderHead = AdderHead {
 	number: 0,
