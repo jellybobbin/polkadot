@@ -1,5 +1,10 @@
+<<<<<<< HEAD:kusama/build.rs
+// Copyright 2019 Parity Technologies (UK) Ltd.
+// This file is part of Substrate.
+=======
 // Copyright 2019-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
+>>>>>>> origin/master:runtime/polkadot/build.rs
 
 // Substrate is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by

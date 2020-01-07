@@ -1,4 +1,4 @@
-// Copyright 2017 Parity Technologies (UK) Ltd.
+// Copyright 2017-2020 Parity Technologies (UK) Ltd.
 // This file is part of Polkadot.
 
 // Polkadot is free software: you can redistribute it and/or modify
@@ -36,7 +36,7 @@ pub use service::{
 };
 pub use service::config::{DatabaseConfig, full_version_from_strs};
 pub use sc_executor::NativeExecutionDispatch;
-pub use sc_client::{ExecutionStrategy, CallExecutor, Client};
+pub use client::{ExecutionStrategy, CallExecutor, Client};
 pub use client_api::backend::Backend;
 pub use sp_api::{Core as CoreApi, ConstructRuntimeApi, ProvideRuntimeApi, StateBackend};
 pub use sp_runtime::traits::HasherFor;
@@ -44,7 +44,7 @@ pub use consensus_common::SelectChain;
 pub use polkadot_network::PolkadotProtocol;
 pub use polkadot_primitives::parachain::{CollatorId, ParachainHost};
 pub use polkadot_primitives::Block;
-pub use sp_core::Blake2Hasher;
+pub use primitives::Blake2Hasher;
 pub use sp_runtime::traits::{Block as BlockT, self as runtime_traits};
 pub use sc_network::specialization::NetworkSpecialization;
 pub use chain_spec::ChainSpec;
