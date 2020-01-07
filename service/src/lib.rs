@@ -36,15 +36,15 @@ pub use service::{
 };
 pub use service::config::{DatabaseConfig, full_version_from_strs};
 pub use sc_executor::NativeExecutionDispatch;
-pub use client::{ExecutionStrategy, CallExecutor, Client};
-pub use client_api::backend::Backend;
+pub use sc_client::{ExecutionStrategy, CallExecutor, Client};
+pub use sc_client_api::backend::Backend;
 pub use sp_api::{Core as CoreApi, ConstructRuntimeApi, ProvideRuntimeApi, StateBackend};
 pub use sp_runtime::traits::HasherFor;
 pub use consensus_common::SelectChain;
 pub use polkadot_network::PolkadotProtocol;
 pub use polkadot_primitives::parachain::{CollatorId, ParachainHost};
 pub use polkadot_primitives::Block;
-pub use primitives::Blake2Hasher;
+pub use sp_core::Blake2Hasher;
 pub use sp_runtime::traits::{Block as BlockT, self as runtime_traits};
 pub use sc_network::specialization::NetworkSpecialization;
 pub use chain_spec::ChainSpec;
@@ -229,7 +229,7 @@ pub fn new_chain_ops<Runtime, Dispatch, Extrinsic>(config: Configuration)
 where
 	Runtime: ConstructRuntimeApi<Block, service::TFullClient<Block, Runtime, Dispatch>> + Send + Sync + 'static,
 	Runtime::RuntimeApi:
-		RuntimeApiCollection<Extrinsic, StateBackend = client_api::StateBackendFor<TFullBackend<Block>, Block>>,
+		RuntimeApiCollection<Extrinsic, StateBackend = sc_client_api::StateBackendFor<TFullBackend<Block>, Block>>,
 	Dispatch: NativeExecutionDispatch + 'static,
 	Extrinsic: RuntimeExtrinsic,
 	<Runtime::RuntimeApi as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<Blake2Hasher>,
@@ -278,7 +278,7 @@ pub fn new_full<Runtime, Dispatch, Extrinsic>(config: Configuration)
 	where
 		Runtime: ConstructRuntimeApi<Block, service::TFullClient<Block, Runtime, Dispatch>> + Send + Sync + 'static,
 		Runtime::RuntimeApi:
-			RuntimeApiCollection<Extrinsic, StateBackend = client_api::StateBackendFor<TFullBackend<Block>, Block>>,
+			RuntimeApiCollection<Extrinsic, StateBackend = sc_client_api::StateBackendFor<TFullBackend<Block>, Block>>,
 		Dispatch: NativeExecutionDispatch + 'static,
 		Extrinsic: RuntimeExtrinsic,
 		// Rust bug: https://github.com/rust-lang/rust/issues/24159
@@ -552,7 +552,7 @@ pub fn new_light<Runtime, Dispatch, Extrinsic>(config: Configuration)
 	>, ServiceError>
 where
 	Runtime: Send + Sync + 'static,
-	Runtime::RuntimeApi: RuntimeApiCollection<Extrinsic, StateBackend = client_api::StateBackendFor<TLightBackend<Block>, Block>>,
+	Runtime::RuntimeApi: RuntimeApiCollection<Extrinsic, StateBackend = sc_client_api::StateBackendFor<TLightBackend<Block>, Block>>,
 	Dispatch: NativeExecutionDispatch + 'static,
 	Extrinsic: RuntimeExtrinsic,
 	// Rust bug: https://github.com/rust-lang/rust/issues/43580
