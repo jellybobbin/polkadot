@@ -33,13 +33,8 @@ use structopt::StructOpt;
 use sp_api::ConstructRuntimeApi;
 
 pub use service::{
-<<<<<<< HEAD
 	AbstractService, CustomConfiguration, ProvideRuntimeApi, CoreApi, ParachainHost, IsKusama,
 	WrappedExecutor, Block, self, RuntimeApiCollection, TFullClient
-=======
-	AbstractService, CustomConfiguration, ProvideRuntimeApi, CoreApi, ParachainHost, IsKusama, self,
-	WrappedExecutor
->>>>>>> origin/master
 };
 
 pub use cli::{VersionInfo, IntoExit, NoCustom, SharedParams};
@@ -60,11 +55,7 @@ enum PolkadotSubCommands {
 }
 
 impl cli::GetSharedParams for PolkadotSubCommands {
-<<<<<<< HEAD
 	fn shared_params(&self) -> Option<&SharedParams> { None }
-=======
-	fn shared_params(&self) -> Option<&cli::SharedParams> { None }
->>>>>>> origin/master
 }
 
 #[derive(Debug, StructOpt, Clone)]
@@ -86,11 +77,14 @@ pub fn run<E: IntoExit>(exit: E, version: cli::VersionInfo) -> error::Result<()>
 		"parity-polkadot",
 		std::env::args(),
 	);
+
+	// TODO: Use `IsKusama` trait. #727
 	if cmd
 		.shared_params()
 		.and_then(|p| p.chain.as_ref())
-		.and_then(|c| ChainSpec::from(c))
-		.map_or(false, |c| c.is_kusama())
+		.map_or(true, |p| ChainSpec::from(&p)
+			.map_or(false, |c| c.is_kusama())
+		)
 	{
 		execute_cmd_with_runtime::<
 			service::kusama_runtime::RuntimeApi,
@@ -116,7 +110,6 @@ fn execute_cmd_with_runtime<R, D, E, X>(
 ) -> error::Result<()>
 where
 	R: service::ConstructRuntimeApi<service::Block, service::TFullClient<service::Block, R, D>>
-<<<<<<< HEAD
 		+ Send + Sync + 'static,
 	<R as ConstructRuntimeApi<service::Block, service::TFullClient<service::Block, R, D>>>::RuntimeApi:
 		RuntimeApiCollection<E, StateBackend = sc_client_api::StateBackendFor<service::TFullBackend<Block>, Block>>,
@@ -144,15 +137,6 @@ where
 			R
 		>
 	>,
-=======
-		+ service::ConstructRuntimeApi<service::Block, service::TLightClient<service::Block, R, D>>
-		+ Send + Sync + 'static,
-	<R as service::ConstructRuntimeApi<service::Block, service::TFullClient<service::Block, R, D>>>::RuntimeApi: service::RuntimeApiCollection<E>,
-	<R as service::ConstructRuntimeApi<service::Block, service::TLightClient<service::Block, R, D>>>::RuntimeApi: service::RuntimeApiCollection<E>,
-	E: service::Codec + Send + Sync + 'static,
-	D: service::NativeExecutionDispatch + 'static,
-	X: IntoExit,
->>>>>>> origin/master
 {
 	match cmd {
 		cli::ParseAndPrepare::Run(cmd) => cmd.run(&load_spec, exit,
@@ -160,7 +144,7 @@ where
 				info!("{}", version.name);
 				info!("  version {}", config.full_version());
 				info!("  by {}, 2017-2019", version.author);
-				info!("Chain specification: {}", config.chain_spec.name());
+				info!("Chain specification: {} (native: {})", config.chain_spec.name(), D::native_version().runtime_version);
 				if config.is_kusama() {
 					info!("----------------------------");
 					info!("This chain is not in any way");

@@ -12,6 +12,9 @@ set -e # fail on any error
 # give some context
 git log --graph --oneline --decorate=short -n 10
 
+# make sure the master branch is available in shallow clones
+git fetch --depth=${GIT_DEPTH:-100} origin master
+
 
 github_label () {
 	echo
@@ -26,8 +29,8 @@ github_label () {
 }
 
 
-
-for VERSIONS_FILE in runtime/kusama/src/lib.rs runtime/polkadot/src/lib.rs
+# Introduce runtime/polkadot/src/lib.rs once Polkadot mainnet is live.
+for VERSIONS_FILE in runtime/kusama/src/lib.rs 
 do
 	# check if the wasm sources changed
 	if ! git diff --name-only origin/master...${CI_COMMIT_SHA} \
